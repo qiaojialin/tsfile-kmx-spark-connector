@@ -4,6 +4,7 @@ import java.io.File
 import java.util
 
 import cn.edu.thu.tsfile.file.metadata.enums.{TSDataType, TSEncoding}
+import cn.edu.thu.tsfile.spark.common.SparkConstant
 import cn.edu.thu.tsfile.timeseries.read.LocalFileInput
 import cn.edu.thu.tsfile.timeseries.read.metadata.SeriesSchema
 import cn.edu.thu.tsfile.timeseries.read.qp.SQLConstant
@@ -14,7 +15,7 @@ import org.apache.spark.sql.types._
 import org.junit.Assert
 import org.scalatest.{BeforeAndAfterAll, FunSuite}
 
-import scala.collection.mutable.ListBuffer
+import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 
 /**
   * @author QJL
@@ -28,7 +29,7 @@ class ConverterTest extends FunSuite with BeforeAndAfterAll {
     val tsfile = new File(tsfilePath)
     if(!tsfile.getParentFile.exists())
       tsfile.mkdirs()
-    new CreateTSFile().createTSFile1(tsfilePath)
+    new CreateKmxTSFile().createTSFile1(tsfilePath)
   }
 
   override protected def afterAll(): Unit = {
@@ -47,7 +48,9 @@ class ConverterTest extends FunSuite with BeforeAndAfterAll {
     filters += GreaterThan("time", 50)
     filters += Or(LessThan("s1", 50), GreaterThan("s1", 80))
 
-    val queryConfigs = Converter.toQueryConfigs(in, requiredSchema, filters, "0".toLong, "749".toLong)
+    val keys = new ArrayBuffer[String]()
+    keys += ""
+    val queryConfigs = Converter.toQueryConfigs(in, requiredSchema, filters, keys.toArray, "0".toLong, "749".toLong)
 
     val queryConfig0 = new QueryConfig("root.car.d2.s1", "0,(<80)&(>50)", "null", "2,root.car.d2.s1,<50")
     val queryConfig1 = new QueryConfig("root.car.d1.s1", "0,(<80)&(>50)", "null", "2,root.car.d1.s1,<50")
@@ -80,7 +83,8 @@ class ConverterTest extends FunSuite with BeforeAndAfterAll {
     fields.add(new SeriesSchema("s4", TSDataType.DOUBLE, TSEncoding.PLAIN))
     fields.add(new SeriesSchema("s5", TSDataType.BOOLEAN, TSEncoding.PLAIN))
     fields.add(new SeriesSchema("s6", TSDataType.BYTE_ARRAY, TSEncoding.PLAIN))
-    val sqlSchema = Converter.toSparkSqlSchema(fields)
+    val keys = "D:d1+C:c1+V:v1".split(SparkConstant.DELTA_OBJECT_SEPARATOR).map(kv => kv.split(SparkConstant.DELTA_OBJECT_VALUE_SEPARATOR)(0))
+    val sqlSchema = Converter.toSparkSqlSchema(fields, keys)
 
     val expectedFields = Array(
       StructField(SQLConstant.RESERVED_TIME, LongType, nullable = false),

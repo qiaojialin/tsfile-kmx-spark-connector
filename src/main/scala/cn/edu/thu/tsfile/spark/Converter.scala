@@ -4,7 +4,7 @@ import java.util
 
 import cn.edu.thu.tsfile.common.utils.TSRandomAccessFileReader
 import cn.edu.thu.tsfile.file.metadata.enums.TSDataType
-import cn.edu.thu.tsfile.io.HDFSInputStream
+import cn.edu.thu.tsfile.hadoop.io.HDFSInputStream
 import cn.edu.thu.tsfile.spark.common.{BasicOperator, FilterOperator, TSQueryPlan}
 import cn.edu.thu.tsfile.timeseries.read.metadata.SeriesSchema
 import cn.edu.thu.tsfile.timeseries.read.qp.SQLConstant
@@ -41,7 +41,9 @@ object Converter {
     * @param conf hadoop configuration
     * @return union series
     */
-  def getUnionSeries(files: Seq[FileStatus], conf: Configuration): util.ArrayList[SeriesSchema] = {
+  def getUnionSeries(
+                      files: Seq[FileStatus],
+                      conf: Configuration): util.ArrayList[SeriesSchema] = {
     val unionSeries = new util.ArrayList[SeriesSchema]()
     var seriesSet: mutable.Set[String] = mutable.Set()
 
@@ -66,10 +68,14 @@ object Converter {
     * @param tsfileSchema all time series information in TSFile
     * @return sparkSQL table schema
     */
-  def toSparkSqlSchema(tsfileSchema: util.ArrayList[SeriesSchema]): Option[StructType] = {
+  def toSparkSqlSchema(
+                        tsfileSchema: util.ArrayList[SeriesSchema],
+                        keys: Array[String]): Option[StructType] = {
     val fields = new ListBuffer[StructField]()
-    fields += StructField(SQLConstant.RESERVED_TIME, LongType, nullable = false)
-    fields += StructField(SQLConstant.RESERVED_DELTA_OBJECT, StringType, nullable = false)
+    fields += StructField(SQLConstant.RESERVED_TIME, LongType, nullable = true)
+    keys.foreach(key => {
+      fields += StructField(key, StringType, nullable = true)
+    })
 
     tsfileSchema.foreach((series: SeriesSchema) => {
       fields += StructField(series.name, series.dataType match {
@@ -100,11 +106,18 @@ object Converter {
     * @param in file input stream
     * @param requiredSchema The schema of the data that should be output for each row.
     * @param filters A set of filters than can optionally be used to reduce the number of rows output
+    * @param keys Deviceids
     * @param start the start offset in file partition
     * @param end the end offset in file partition
     * @return TSFile physical query plans
     */
-  def toQueryConfigs(in: TSRandomAccessFileReader, requiredSchema: StructType, filters: Seq[Filter], start : java.lang.Long, end : java.lang.Long): Array[QueryConfig] = {
+  def toQueryConfigs(
+                      in: TSRandomAccessFileReader,
+                      requiredSchema: StructType,
+                      filters: Seq[Filter],
+                      keys: Array[String],
+                      start : java.lang.Long,
+                      end : java.lang.Long): Array[QueryConfig] = {
 
     val queryConfigs = new ArrayBuffer[QueryConfig]()
 
@@ -124,7 +137,7 @@ object Converter {
 
       //generatePlans operatorTree to TSQueryPlan list
       val queryProcessor = new QueryProcessor()
-      val tsfileQuerys = queryProcessor.generatePlans(null, paths, in, start, end).toArray
+      val tsfileQuerys = queryProcessor.generatePlans(null, paths, keys.toList, in, start, end).toArray
 
       //construct TSQueryPlan list to QueryConfig list
       tsfileQuerys.foreach(f => {
@@ -142,7 +155,7 @@ object Converter {
 
       //generatePlans operatorTree to TSQueryPlan list
       val queryProcessor = new QueryProcessor()
-      val queryPlans = queryProcessor.generatePlans(operator, paths, in, start, end).toArray
+      val queryPlans = queryProcessor.generatePlans(operator, paths, keys.toList, in, start, end).toArray
 
       //construct TSQueryPlan list to QueryConfig list
       queryPlans.foreach(f => {

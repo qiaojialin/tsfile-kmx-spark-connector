@@ -25,7 +25,7 @@ public class QueryPlanTest {
 
     @Before
     public void before() throws Exception {
-        new CreateTSFile().createTSFile1(tsfilePath);
+        new CreateKmxTSFile().createTSFile1(tsfilePath);
     }
 
     @Test
@@ -39,7 +39,10 @@ public class QueryPlanTest {
         paths.add("s1");
         paths.add("time");
 
-        List<TSQueryPlan> queryPlans = new QueryProcessor().generatePlans(filterOperator, paths, in, Long.valueOf("0"), Long.valueOf("749"));
+        List<String> keys = new ArrayList<>();
+        keys.add("");
+
+        List<TSQueryPlan> queryPlans = new QueryProcessor().generatePlans(filterOperator, paths, keys, in, Long.valueOf("0"), Long.valueOf("749"));
 
         ArrayList<String> expectedPaths1 = new ArrayList<>();
         expectedPaths1.add("root.car.d2.s1");

@@ -27,8 +27,8 @@ class TSFileSuit extends FunSuite with BeforeAndAfterAll {
     val tsfile_folder = new File(tsfileFolder)
     if(!tsfile_folder.exists())
       tsfile_folder.mkdirs()
-    new CreateTSFile().createTSFile1(tsfilePath1)
-    new CreateTSFile().createTSFile2(tsfilePath2)
+    new CreateKmxTSFile().createTSFile1(tsfilePath1)
+    new CreateKmxTSFile().createTSFile2(tsfilePath2)
     spark = SparkSession
       .builder()
       .config("spark.master", "local")
@@ -44,35 +44,22 @@ class TSFileSuit extends FunSuite with BeforeAndAfterAll {
     }
   }
 
-  test("testMultiFilesWithFilterOr") {
+  test("testMultiFiles") {
     val df = spark.read.format("cn.edu.thu.tsfile.spark").load(tsfileFolder)
     df.createOrReplaceTempView("tsfile_table")
-    val newDf = spark.sql("select * from tsfile_table where s1 < 2 or s2 > 60")
-    Assert.assertEquals(4, newDf.count())
+    val newDf = spark.sql("select * from tsfile_table where D = 'd1' and C = 'c1' or D = 'd3'")
+    Assert.assertEquals(5, newDf.count())
   }
 
-  test("testMultiFilesWithFilterAnd") {
-    val df = spark.read.tsfile(tsfileFolder)
-    df.createOrReplaceTempView("tsfile_table")
-    val newDf = spark.sql("select * from tsfile_table where s2 > 20 and s1 < 5")
-    Assert.assertEquals(2, newDf.count())
-  }
-
-  test("testMultiFilesSelect*") {
-    val df = spark.read.tsfile(tsfileFolder)
-    df.createOrReplaceTempView("tsfile_table")
-    val newDf = spark.sql("select * from tsfile_table")
-    Assert.assertEquals(16, newDf.count())
-  }
-
-  test("testCount") {
+  test("test key") {
     val df = spark.read.tsfile(tsfilePath1)
     df.createOrReplaceTempView("tsfile_table")
-    val newDf = spark.sql("select count(*) from tsfile_table")
-    Assert.assertEquals(8, newDf.head().apply(0).asInstanceOf[Long])
+    val newDf = spark.sql("select * from tsfile_table where C = 'c1' and D = 'd1'")
+    val count = newDf.count()
+    Assert.assertEquals(2, count)
   }
 
-  test("testSelect *") {
+  test("test Select *") {
     val df = spark.read.tsfile(tsfilePath1)
     df.createOrReplaceTempView("tsfile_table")
     val newDf = spark.sql("select * from tsfile_table")
@@ -80,30 +67,15 @@ class TSFileSuit extends FunSuite with BeforeAndAfterAll {
     Assert.assertEquals(8, count)
   }
 
-  test("testQueryData1") {
-    val df = spark.read.tsfile(tsfilePath1)
-    df.createOrReplaceTempView("tsfile_table")
-
-    val newDf = spark.sql("select s1, s3 from tsfile_table where s1 > 4 and delta_object = 'root.car.d2'").cache()
-    val count = newDf.count()
-    Assert.assertEquals(4, count)
-  }
-
-  test("testQueryDataComplex2") {
-    val df = spark.read.tsfile(tsfilePath1)
-    df.createOrReplaceTempView("tsfile_table")
-
-    val newDf = spark.sql("select * from tsfile_table where s1 <4 and delta_object = 'root.car.d1' or s1 > 5 and delta_object = 'root.car.d2'").cache()
-    val count = newDf.count()
-    Assert.assertEquals(6, count)
-  }
 
   test("testQuerySchema") {
     val df = spark.read.tsfile(tsfilePath1)
 
     val expected = StructType(Seq(
       StructField(SQLConstant.RESERVED_TIME, LongType, nullable = true),
-      StructField(SQLConstant.RESERVED_DELTA_OBJECT, StringType, nullable = true),
+      StructField("D", StringType, nullable = true),
+      StructField("C", StringType, nullable = true),
+      StructField("V", StringType, nullable = true),
       StructField("s3", FloatType, nullable = true),
       StructField("s4", DoubleType, nullable = true),
       StructField("s1", IntegerType, nullable = true),

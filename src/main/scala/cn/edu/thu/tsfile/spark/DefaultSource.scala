@@ -5,10 +5,11 @@ import java.net.URI
 import java.util
 
 import cn.edu.thu.tsfile.common.constant.QueryConstant
-import cn.edu.thu.tsfile.io.HDFSInputStream
-import cn.edu.thu.tsfile.spark.DefaultSource.SerializableConfiguration
+import cn.edu.thu.tsfile.hadoop.io.HDFSInputStream
+import cn.edu.thu.tsfile.spark.DefaultSource._
+import cn.edu.thu.tsfile.spark.common.SparkConstant
 import cn.edu.thu.tsfile.timeseries.read.qp.SQLConstant
-import cn.edu.thu.tsfile.timeseries.read.query.QueryDataSet
+import cn.edu.thu.tsfile.timeseries.read.query.{QueryDataSet, QueryEngine}
 import cn.edu.thu.tsfile.timeseries.read.readSupport.{Field, RowRecord}
 import com.esotericsoftware.kryo.io.{Input, Output}
 import com.esotericsoftware.kryo.{Kryo, KryoSerializable}
@@ -27,6 +28,7 @@ import org.slf4j.{Logger, LoggerFactory}
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable
+import scala.collection.mutable.ArrayBuffer
 
 /**
   * TSFile data source
@@ -34,7 +36,7 @@ import scala.collection.mutable
   * @author QJL
   * @author MXW
   */
-private[tsfile] class DefaultSource extends FileFormat with DataSourceRegister {
+class DefaultSource extends FileFormat{
 
   class TSFileDataSourceException(message: String, cause: Throwable)
     extends Exception(message, cause){
@@ -53,13 +55,26 @@ private[tsfile] class DefaultSource extends FileFormat with DataSourceRegister {
 
     val conf = spark.sparkContext.hadoopConfiguration
 
+    val in = new HDFSInputStream(files.head.getPath, conf)
+
+    val queryEngine = new QueryEngine(in)
+
+    val deltaObjects = queryEngine.getAllDeltaObject
+    val keys = deltaObjects.get(0).split(SparkConstant.DELTA_OBJECT_SEPARATOR)
+      .map(kv => kv.split(SparkConstant.DELTA_OBJECT_VALUE_SEPARATOR)(0))
+
+    keys.foreach(f => {
+      DefaultSource.keys += f
+    })
+
     //check if the path is given
-    options.getOrElse(DefaultSource.path, throw new TSFileDataSourceException(s"${DefaultSource.path} must be specified for tsfile DataSource"))
+    options.getOrElse(DefaultSource.path, throw new TSFileDataSourceException
+    (s"${DefaultSource.path} must be specified for tsfile DataSource"))
 
     //get union series in tsfile
     var tsfileSchema = Converter.getUnionSeries(files, conf)
 
-    Converter.toSparkSqlSchema(tsfileSchema)
+    Converter.toSparkSqlSchema(tsfileSchema, keys)
   }
 
   override def isSplitable(
@@ -90,14 +105,15 @@ private[tsfile] class DefaultSource extends FileFormat with DataSourceRegister {
         taskContext.addTaskCompletionListener { _ => in.close() }
         taskInfo += "task Id: " + taskContext.taskAttemptId() + " partition Id: " + taskContext.partitionId()}
       }
-      DefaultSource.logger.debug("taskInfo: {}", taskInfo)
+      DefaultSource.logger.info("taskInfo: {}", taskInfo)
 
       val parameters = new util.HashMap[java.lang.String, java.lang.Long]()
       parameters.put(QueryConstant.PARTITION_START_OFFSET, file.start.asInstanceOf[java.lang.Long])
       parameters.put(QueryConstant.PARTITION_END_OFFSET, (file.start + file.length).asInstanceOf[java.lang.Long])
 
       //convert tsfilequery to QueryConfigs
-      val queryConfigs = Converter.toQueryConfigs(in, requiredSchema, filters, file.start.asInstanceOf[java.lang.Long], (file.start + file.length).asInstanceOf[java.lang.Long])
+      val queryConfigs = Converter.toQueryConfigs(in, requiredSchema, filters, keys.toArray,
+        file.start.asInstanceOf[java.lang.Long], (file.start + file.length).asInstanceOf[java.lang.Long])
 
       //use QueryConfigs to query tsfile
       val dataSets = Executor.query(in, queryConfigs.toList, parameters)
@@ -138,6 +154,8 @@ private[tsfile] class DefaultSource extends FileFormat with DataSourceRegister {
         // Used to convert `Row`s containing data columns into `InternalRow`s.
         private val encoderForDataColumns = RowEncoder(requiredSchema)
 
+        private val keyMap = new mutable.HashMap[String, String]()
+
         override def hasNext: Boolean = {
           var hasNext = false
 
@@ -152,6 +170,14 @@ private[tsfile] class DefaultSource extends FileFormat with DataSourceRegister {
             if (curRecord == null || tmpRecord.record.timestamp != curRecord.record.timestamp ||
               !tmpRecord.record.getFields.get(0).deltaObjectId.equals(curRecord.record.getFields.get(0).deltaObjectId)) {
               curRecord = tmpRecord
+
+              val deltaObjectId = curRecord.record.fields.get(0).deltaObjectId
+              val kvs = deltaObjectId.split(SparkConstant.DELTA_OBJECT_SEPARATOR)
+              kvs.foreach(kv => {
+                val k_v = kv.split(SparkConstant.DELTA_OBJECT_VALUE_SEPARATOR)
+                keyMap.put(k_v(0), k_v(1))
+              })
+
               hasNext = true
             }
           }
@@ -172,8 +198,8 @@ private[tsfile] class DefaultSource extends FileFormat with DataSourceRegister {
           requiredSchema.foreach((field: StructField) => {
             if (field.name == SQLConstant.RESERVED_TIME) {
               rowBuffer(index) = curRecord.record.timestamp
-            } else if (field.name == SQLConstant.RESERVED_DELTA_OBJECT) {
-              rowBuffer(index) = curRecord.record.getFields.get(0).deltaObjectId
+            } else if (keys.contains(field.name)) {
+              rowBuffer(index) = keyMap.get(field.name).orNull
             } else {
               rowBuffer(index) = Converter.toSqlValue(fields.getOrElse(field.name, null))
             }
@@ -186,7 +212,7 @@ private[tsfile] class DefaultSource extends FileFormat with DataSourceRegister {
     }
   }
 
-  override def shortName(): String = "tsfile"
+//  override def shortName(): String = "tsfile"
 
   override def prepareWrite(sparkSession: SparkSession,
                             job: Job, options: Map[String, String],
@@ -197,9 +223,10 @@ private[tsfile] class DefaultSource extends FileFormat with DataSourceRegister {
 }
 
 
-private[tsfile] object DefaultSource {
+object DefaultSource {
   val logger: Logger = LoggerFactory.getLogger(getClass)
   val path = "path"
+  val keys = new ArrayBuffer[String]()
 
   class SerializableConfiguration(@transient var value: Configuration) extends Serializable with KryoSerializable{
     override def write(kryo: Kryo, output: Output): Unit = {

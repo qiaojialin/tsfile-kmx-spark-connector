@@ -17,7 +17,7 @@ import java.io.File;
  *
  * @author QJL
  */
-public class CreateTSFile {
+public class CreateKmxTSFile {
 
     public void createTSFile1(String tsfilePath) throws Exception {
         File file = new File(tsfilePath);
@@ -28,15 +28,15 @@ public class CreateTSFile {
         TSRandomAccessFileWriter output = new RandomAccessOutputStream(new File(tsfilePath));
         TsFile tsFile = new TsFile(output, jsonSchema);
 
-        tsFile.writeLine("root.car.d1,1, s1, 1, s2, 10, s3, 100.1, s4, 0.1");
-        tsFile.writeLine("root.car.d1,2, s1, 2, s2, 20, s3, 200.2, s4, 0.2");
-        tsFile.writeLine("root.car.d1,3, s1, 3, s2, 30, s3, 200.3, s4, 0.3");
-        tsFile.writeLine("root.car.d1,4, s1, 4, s2, 40, s3, 200.4, s4, 0.4");
+        tsFile.writeLine("D:d1+C:c1+V:v1,1, s1, 1, s2, 10, s3, 100.1, s4, 0.1");
+        tsFile.writeLine("D:d1+C:c2+V:v1,2, s1, 2, s2, 20, s3, 200.2, s4, 0.2");
+        tsFile.writeLine("D:d1+C:c1+V:v2,3, s1, 3, s2, 30, s3, 200.3, s4, 0.3");
+        tsFile.writeLine("D:d1+C:c2+V:v2,4, s1, 4, s2, 40, s3, 200.4, s4, 0.4");
 
-        tsFile.writeLine("root.car.d2,5, s1, 5, s2, 50, s3, 200.5, s4, 0.5");
-        tsFile.writeLine("root.car.d2,6, s1, 6, s2, 60, s3, 200.6, s4, 0.6");
-        tsFile.writeLine("root.car.d2,7, s1, 7, s2, 70, s3, 200.7, s4, 0.7");
-        tsFile.writeLine("root.car.d2,8, s1, 8, s2, 80, s3, 200.8, s4, 0.8");
+        tsFile.writeLine("D:d2+C:c1+V:v1,5, s1, 5, s2, 50, s3, 200.5, s4, 0.5");
+        tsFile.writeLine("D:d2+C:c2+V:v1,6, s1, 6, s2, 60, s3, 200.6, s4, 0.6");
+        tsFile.writeLine("D:d2+C:c1+V:v2,7, s1, 7, s2, 70, s3, 200.7, s4, 0.7");
+        tsFile.writeLine("D:d2+C:c2+V:v2,8, s1, 8, s2, 80, s3, 200.8, s4, 0.8");
         tsFile.close();
     }
 
@@ -49,14 +49,9 @@ public class CreateTSFile {
         TSRandomAccessFileWriter output = new RandomAccessOutputStream(new File(tsfilePath));
         TsFile tsFile = new TsFile(output, jsonSchema);
 
-        tsFile.writeLine("root.car.d1,1, s1, 1");
-        tsFile.writeLine("root.car.d1,2, s1, 2");
-        tsFile.writeLine("root.car.d1,3, s1, 3");
-        tsFile.writeLine("root.car.d1,4, s1, 4");
-        tsFile.writeLine("root.car.d2,5, s1, 5");
-        tsFile.writeLine("root.car.d2,6, s1, 6");
-        tsFile.writeLine("root.car.d2,7, s1, 7");
-        tsFile.writeLine("root.car.d2,8, s1, 8");
+        tsFile.writeLine("D:d3+C:c1,1, s1, 1");
+        tsFile.writeLine("D:d3+C:c2,2, s1, 2");
+        tsFile.writeLine("D:d3+C:c3,3, s1, 3");
         tsFile.close();
     }
 
@@ -106,15 +101,8 @@ public class CreateTSFile {
         s1.put(JsonFormatConstant.MEASUREMENT_ENCODING,
                 conf.defaultSeriesEncoder);
 
-        JSONObject s2 = new JSONObject();
-        s2.put(JsonFormatConstant.MEASUREMENT_UID, "s2");
-        s2.put(JsonFormatConstant.DATA_TYPE, TSDataType.INT64.toString());
-        s2.put(JsonFormatConstant.MEASUREMENT_ENCODING,
-                conf.defaultSeriesEncoder);
-
         JSONArray measureGroup = new JSONArray();
         measureGroup.put(s1);
-        measureGroup.put(s2);
 
         JSONObject jsonSchema = new JSONObject();
         jsonSchema.put(JsonFormatConstant.DELTA_TYPE, "test_type");
