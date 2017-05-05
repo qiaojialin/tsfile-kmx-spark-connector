@@ -2,6 +2,9 @@
 
 将一个或多个TsFile展示成SparkSQL中的一张表。允许指定单个目录，或使用通配符匹配多个目录。如果是多个TsFile，schema将保留各个TsFile中sensor的并集。
 
+##示例
+src/test/scala/cn.edu.thu.tsfile.spark.TSFileSuit
+
 ##路径指定方式
 
 basefolder/key=1/file1.tsfile
