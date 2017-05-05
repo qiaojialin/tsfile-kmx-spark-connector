@@ -36,7 +36,7 @@ import scala.collection.mutable.ArrayBuffer
   * @author QJL
   * @author MXW
   */
-class DefaultSource extends FileFormat{
+class DefaultSource extends FileFormat with DataSourceRegister{
 
   class TSFileDataSourceException(message: String, cause: Throwable)
     extends Exception(message, cause){
@@ -92,6 +92,9 @@ class DefaultSource extends FileFormat{
                             filters: Seq[Filter],
                             options: Map[String, String],
                             hadoopConf: Configuration): (PartitionedFile) => Iterator[InternalRow] = {
+
+          partitionSchema.foreach(f => println(f))
+
     val broadcastedConf =
       sparkSession.sparkContext.broadcast(new SerializableConfiguration(hadoopConf))
 
@@ -212,7 +215,7 @@ class DefaultSource extends FileFormat{
     }
   }
 
-//  override def shortName(): String = "tsfile"
+  override def shortName(): String = "tsfile"
 
   override def prepareWrite(sparkSession: SparkSession,
                             job: Job, options: Map[String, String],
