@@ -14,6 +14,7 @@ import org.scalatest.{BeforeAndAfterAll, FunSuite}
 class TSFileSuit extends FunSuite with BeforeAndAfterAll {
 
   private val resourcesFolder = "src/test/resources"
+  private val kmxTsfile = "src/test/resources/kmx.tsfile"
   private val tsfileFolder = "src/test/resources/tsfile"
   private val tsfilePath1 = "src/test/resources/tsfile/test1.tsfile"
   private val tsfilePath2 = "src/test/resources/tsfile/test2.tsfile"
@@ -42,6 +43,13 @@ class TSFileSuit extends FunSuite with BeforeAndAfterAll {
     } finally {
       super.afterAll()
     }
+  }
+
+  test("testKmxTsfile") {
+    val df = spark.read.format("cn.edu.thu.tsfile.spark").load(kmxTsfile)
+    df.createOrReplaceTempView("tsfile_table")
+    val newDf = spark.sql("select * from tsfile_table")
+    newDf.show()
   }
 
   test("testMultiFiles") {
