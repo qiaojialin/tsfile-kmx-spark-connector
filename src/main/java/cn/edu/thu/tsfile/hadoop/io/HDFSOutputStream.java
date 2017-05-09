@@ -46,21 +46,30 @@ public class HDFSOutputStream implements TSRandomAccessFileWriter {
 		return fsDataOutputStream;
 	}
 
+	@Override
 	public long getPos() throws IOException {
 
 		return fsDataOutputStream.getPos();
 	}
 
+	@Override
+	public void seek(long offset) throws IOException {
+		throw new IOException("Not support");
+	}
+
+	@Override
 	public void write(int b) throws IOException {
 		
 		fsDataOutputStream.write(b);
 	}
 
+	@Override
 	public void write(byte[] b) throws IOException {
 		
 		fsDataOutputStream.write(b);
 	}
 
+	@Override
 	public void close() throws IOException {
 		
 		fsDataOutputStream.close();
