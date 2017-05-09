@@ -4,7 +4,7 @@
 
   <groupId>cn.edu.thu</groupId>
   <artifactId>tsfile-kmx-spark</artifactId>
-  <version>1.0-SNAPSHOT</version>
+  <version>1.0</version>
   <build>
     <plugins>
       <plugin>

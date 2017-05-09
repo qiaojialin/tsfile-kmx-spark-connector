@@ -6,7 +6,7 @@
 
 ## 示例
 
-src/test/scala/cn.edu.thu.tsfile.spark.TSFileSuit
+src/test/scala/cn.edu.thu.kvtsfile.spark.TSFileSuit
 
 
 ## 路径指定方式
@@ -105,13 +105,13 @@ The SparkSQL Table Structure is as follow:
 
 	```scala
 	// import this library and Spark
-	import cn.edu.thu.tsfile.spark._
+	import cn.edu.thu.kvtsfile.spark._
 	import org.apache.spark.sql.SparkSession
 
 	val spark = SparkSession.builder().master("local").getOrCreate()
 
 	//read data in TsFile and create a table
-	val df = spark.read.tsfile("test.ts")
+	val df = spark.read.kvtsfile("test.ts")
 	df.createOrReplaceTempView("TsFile_table")
 
 	//query with filter
@@ -124,9 +124,11 @@ The SparkSQL Table Structure is as follow:
 * **Example 2**
 
 	```scala
+	import cn.edu.thu.kvtsfile.spark._
+    import org.apache.spark.sql.SparkSession
 	val spark = SparkSession.builder().master("local").getOrCreate()
 	val df = spark.read
-	      .format("cn.edu.thu.tsfile.spark")
+	      .format("cn.edu.thu.kvtsfile.spark")
 	      .load("test.ts")
 
 
@@ -137,10 +139,12 @@ The SparkSQL Table Structure is as follow:
 * **Example 3**
 
 	```scala
+	import cn.edu.thu.kvtsfile.spark._
+    import org.apache.spark.sql.SparkSession
 	val spark = SparkSession.builder().master("local").getOrCreate()
 
 	//create a table in SparkSQL and build relation with a TsFile
-	spark.sql("create temporary view TsFile using cn.edu.thu.tsfile.spark options(path = \"test.ts\")")
+	spark.sql("create temporary view TsFile using cn.edu.thu.kvtsfile.spark options(path = \"test.ts\")")
 
 	spark.sql("select * from TsFile where sensor_1 > 1.2").show()
 
@@ -154,13 +158,13 @@ The SparkSQL Table Structure is as follow:
 mvn package -DskipTests
 
 包所在位置：
-/tsfile-kmx-spark-connector/target/tsfile-1.0-SNAPSHOT-jar-with-dependencies.jar
+/tsfile-kmx-spark-connector/target/tsfile-kmx-spark-1.0.jar
 ```
 
 ```
-$ bin/spark-shell --jars tsfile-spark-0.1.0-jar-with-dependencies.jar
+$ bin/spark-shell --jars tsfile-kmx-spark-1.0.jar
 
-scala> sql("CREATE TEMPORARY TABLE TsFile_table USING cn.edu.thu.tsfile.spark OPTIONS (path \"hdfs://localhost:9000/test.ts\")")
+scala> sql("CREATE TEMPORARY TABLE TsFile_table USING cn.edu.thu.kvtsfile.spark OPTIONS (path \"hdfs://localhost:9000/test.ts\")")
 
 scala> sql("select * from TsFile_table where sensor_1 > 1.2").show()
 ```
