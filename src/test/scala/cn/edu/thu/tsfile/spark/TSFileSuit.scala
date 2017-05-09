@@ -45,6 +45,14 @@ class TSFileSuit extends FunSuite with BeforeAndAfterAll {
     }
   }
 
+  test("testerror") {
+    val df = spark.read.format("cn.edu.thu.tsfile.spark").load("/Users/qiaojialin/Documents/git_workspace/tsfile-kmx-spark-connector/src/test/resources/test.ts")
+    df.createOrReplaceTempView("tsfile_table")
+    val newDf = spark.sql("select * from tsfile_table").cache()
+    newDf.schema
+    newDf.show()
+  }
+
   test("testKmxTsfile") {
     val df = spark.read.format("cn.edu.thu.tsfile.spark").load(kmxTsfile)
     df.createOrReplaceTempView("tsfile_table")

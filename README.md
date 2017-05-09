@@ -1,5 +1,6 @@
 # tsfile-kmx-spark-connector
 
+注意：本版本的connector适用的tsfile中delta\_object字段的格式为： key:value(+key:value)* 其中key不相同
 将一个或多个TsFile展示成SparkSQL中的一张表。允许指定单个目录，或使用通配符匹配多个目录。如果是多个TsFile，schema将保留各个TsFile中sensor的并集。
 
 

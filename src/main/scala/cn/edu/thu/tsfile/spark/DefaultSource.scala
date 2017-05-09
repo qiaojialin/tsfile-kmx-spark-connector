@@ -60,6 +60,10 @@ class DefaultSource extends FileFormat with DataSourceRegister{
     val queryEngine = new QueryEngine(in)
 
     val deltaObjects = queryEngine.getAllDeltaObject
+    if(!deltaObjects.get(0).contains(SparkConstant.DELTA_OBJECT_VALUE_SEPARATOR)) {
+      throw new TSFileDataSourceException("TsFile delta_object must be in format: key:value(+key:value)*")
+    }
+
     val keys = deltaObjects.get(0).split(SparkConstant.DELTA_OBJECT_SEPARATOR)
       .map(kv => kv.split(SparkConstant.DELTA_OBJECT_VALUE_SEPARATOR)(0))
 
