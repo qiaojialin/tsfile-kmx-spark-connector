@@ -6,13 +6,13 @@ import java.util
 
 import cn.edu.thu.kvtsfile.hadoop.HDFSInputStream
 import cn.edu.thu.kvtsfile.spark.DefaultSource.SerializableConfiguration
-import cn.edu.thu.kvtsfile.spark.common.SparkConstant
+import cn.edu.thu.kvtsfile.spark.common.{SQLConstant, SparkConstant}
 import cn.edu.thu.tsfile.common.constant.QueryConstant
-import cn.edu.thu.tsfile.timeseries.read.qp.SQLConstant
 import cn.edu.thu.tsfile.timeseries.read.query.{QueryDataSet, QueryEngine}
 import cn.edu.thu.tsfile.timeseries.read.readSupport.{Field, RowRecord}
 import com.esotericsoftware.kryo.io.{Input, Output}
 import com.esotericsoftware.kryo.{Kryo, KryoSerializable}
+
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileStatus, Path}
 import org.apache.hadoop.mapreduce.Job
@@ -32,9 +32,6 @@ import scala.collection.mutable.ArrayBuffer
 
 /**
   * TSFile data source
-  *
-  * @author QJL
-  * @author MXW
   */
 class DefaultSource extends FileFormat with DataSourceRegister{
 

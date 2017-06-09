@@ -3,15 +3,17 @@ package cn.edu.thu.kvtsfile.spark.optimizer;
 
 import cn.edu.thu.kvtsfile.spark.common.BasicOperator;
 import cn.edu.thu.kvtsfile.spark.common.FilterOperator;
+import cn.edu.thu.kvtsfile.spark.common.SQLConstant;
 import cn.edu.thu.kvtsfile.spark.exception.BasicOperatorException;
 import cn.edu.thu.kvtsfile.spark.exception.RemoveNotException;
-import cn.edu.thu.tsfile.timeseries.read.qp.SQLConstant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
-import static cn.edu.thu.tsfile.timeseries.read.qp.SQLConstant.*;
+import static cn.edu.thu.kvtsfile.spark.common.SQLConstant.KW_AND;
+import static cn.edu.thu.kvtsfile.spark.common.SQLConstant.KW_NOT;
+import static cn.edu.thu.kvtsfile.spark.common.SQLConstant.KW_OR;
 
 
 public class RemoveNotOptimizer implements IFilterOptimizer {

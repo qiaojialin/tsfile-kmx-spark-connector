@@ -2,12 +2,9 @@ package cn.edu.thu.kvtsfile.spark.common;
 
 
 import cn.edu.thu.kvtsfile.spark.exception.BasicOperatorException;
-import cn.edu.thu.tsfile.timeseries.read.qp.SQLConstant;
 
 /**
  * basic operators include < > >= <= !=.
- * 
- * @author kangrong
  *
  */
 

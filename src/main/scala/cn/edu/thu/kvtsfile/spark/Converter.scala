@@ -3,11 +3,10 @@ package cn.edu.thu.kvtsfile.spark
 import java.util
 
 import cn.edu.thu.kvtsfile.hadoop.HDFSInputStream
-import cn.edu.thu.kvtsfile.spark.common.{BasicOperator, FilterOperator, TSQueryPlan}
+import cn.edu.thu.kvtsfile.spark.common.{BasicOperator, FilterOperator, SQLConstant, TSQueryPlan}
 import cn.edu.thu.tsfile.common.utils.TSRandomAccessFileReader
 import cn.edu.thu.tsfile.file.metadata.enums.TSDataType
 import cn.edu.thu.tsfile.timeseries.read.metadata.SeriesSchema
-import cn.edu.thu.tsfile.timeseries.read.qp.SQLConstant
 import cn.edu.thu.tsfile.timeseries.read.query.{QueryConfig, QueryEngine}
 import cn.edu.thu.tsfile.timeseries.read.readSupport.Field
 import org.apache.hadoop.conf.Configuration
@@ -50,7 +49,7 @@ object Converter {
     files.foreach(f => {
       val in = new HDFSInputStream(f.getPath, conf)
       val queryEngine = new QueryEngine(in)
-      val series = queryEngine.getAllSeries
+      val series = queryEngine.getAllSeriesSchema
       series.foreach(s => {
         if(!seriesSet.contains(s.name)) {
           seriesSet += s.name

@@ -3,11 +3,10 @@ package cn.edu.thu.kvtsfile.spark
 import java.io.File
 import java.util
 
-import cn.edu.thu.kvtsfile.spark.common.SparkConstant
+import cn.edu.thu.kvtsfile.spark.common.{SQLConstant, SparkConstant}
 import cn.edu.thu.tsfile.file.metadata.enums.{TSDataType, TSEncoding}
 import cn.edu.thu.tsfile.timeseries.read.LocalFileInput
 import cn.edu.thu.tsfile.timeseries.read.metadata.SeriesSchema
-import cn.edu.thu.tsfile.timeseries.read.qp.SQLConstant
 import cn.edu.thu.tsfile.timeseries.read.query.QueryConfig
 import cn.edu.thu.tsfile.timeseries.read.readSupport.Field
 import org.apache.spark.sql.sources.{Filter, GreaterThan, LessThan, Or}
@@ -29,7 +28,7 @@ class ConverterTest extends FunSuite with BeforeAndAfterAll {
     val tsfile = new File(tsfilePath)
     if(!tsfile.getParentFile.exists())
       tsfile.mkdirs()
-    new CreateKmxTSFile().createTSFile1(tsfilePath)
+    new CreateKmxTSFile().createTSFile2(tsfilePath)
   }
 
   override protected def afterAll(): Unit = {
@@ -52,12 +51,16 @@ class ConverterTest extends FunSuite with BeforeAndAfterAll {
     keys += ""
     val queryConfigs = Converter.toQueryConfigs(in, requiredSchema, filters, keys.toArray, "0".toLong, "749".toLong)
 
-    val queryConfig0 = new QueryConfig("root.car.d2.s1", "0,(<80)&(>50)", "null", "2,root.car.d2.s1,<50")
-    val queryConfig1 = new QueryConfig("root.car.d1.s1", "0,(<80)&(>50)", "null", "2,root.car.d1.s1,<50")
-    val queryConfig2 = new QueryConfig("root.car.d2.s1", "0,(<80)&(>50)", "null", "2,root.car.d2.s1,>80")
-    val queryConfig3 = new QueryConfig("root.car.d1.s1", "0,(<80)&(>50)", "null", "2,root.car.d1.s1,>80")
+    val queryConfig0 = new QueryConfig("D:d3+C:c3.s1", "0,(<80)&(>50)", "null", "2,D:d3+C:c3.s1,<50")
+    val queryConfig1 = new QueryConfig("D:d3+C:c2.s1", "0,(<80)&(>50)", "null", "2,D:d3+C:c2.s1,<50")
+    val queryConfig2 = new QueryConfig("D:d3+C:c1.s1", "0,(<80)&(>50)", "null", "2,D:d3+C:c1.s1,<50")
+    val queryConfig3 = new QueryConfig("D:d3+C:c3.s1", "0,(<80)&(>50)", "null", "2,D:d3+C:c3.s1,>80")
+    val queryConfig4 = new QueryConfig("D:d3+C:c2.s1", "0,(<80)&(>50)", "null", "2,D:d3+C:c2.s1,>80")
+    val queryConfig5 = new QueryConfig("D:d3+C:c1.s1", "0,(<80)&(>50)", "null", "2,D:d3+C:c1.s1,>80")
 
-    Assert.assertEquals(4, queryConfigs.length)
+    Assert.assertEquals(6, queryConfigs.length)
+    println(queryConfigs)
+
     Assert.assertEquals(queryConfig0.getSelectColumns, queryConfigs(0).getSelectColumns)
     Assert.assertEquals(queryConfig0.getValueFilter, queryConfigs(0).getValueFilter)
     Assert.assertEquals(queryConfig0.getTimeFilter, queryConfigs(0).getTimeFilter)
@@ -73,6 +76,14 @@ class ConverterTest extends FunSuite with BeforeAndAfterAll {
     Assert.assertEquals(queryConfig3.getSelectColumns, queryConfigs(3).getSelectColumns)
     Assert.assertEquals(queryConfig3.getValueFilter, queryConfigs(3).getValueFilter)
     Assert.assertEquals(queryConfig3.getTimeFilter, queryConfigs(3).getTimeFilter)
+
+    Assert.assertEquals(queryConfig4.getSelectColumns, queryConfigs(4).getSelectColumns)
+    Assert.assertEquals(queryConfig4.getValueFilter, queryConfigs(4).getValueFilter)
+    Assert.assertEquals(queryConfig4.getTimeFilter, queryConfigs(4).getTimeFilter)
+
+    Assert.assertEquals(queryConfig5.getSelectColumns, queryConfigs(5).getSelectColumns)
+    Assert.assertEquals(queryConfig5.getValueFilter, queryConfigs(5).getValueFilter)
+    Assert.assertEquals(queryConfig5.getTimeFilter, queryConfigs(5).getTimeFilter)
   }
 
   test("testToSparkSqlSchema") {
@@ -87,8 +98,10 @@ class ConverterTest extends FunSuite with BeforeAndAfterAll {
     val sqlSchema = Converter.toSparkSqlSchema(fields, keys)
 
     val expectedFields = Array(
-      StructField(SQLConstant.RESERVED_TIME, LongType, nullable = false),
-      StructField(SQLConstant.RESERVED_DELTA_OBJECT, StringType, nullable = false),
+      StructField(SQLConstant.RESERVED_TIME, LongType, nullable = true),
+      StructField("D", StringType, nullable = true),
+      StructField("C", StringType, nullable = true),
+      StructField("V", StringType, nullable = true),
       StructField("s1", IntegerType, nullable = true),
       StructField("s2", LongType, nullable = true),
       StructField("s3", FloatType, nullable = true),

@@ -1,10 +1,8 @@
 package cn.edu.thu.kvtsfile.spark.common;
 
-import cn.edu.thu.tsfile.timeseries.read.qp.SQLConstant;
 
 /**
- * This class is a superclass of all operator. 
- * @author kangrong
+ * This class is a superclass of all operator.
  *
  */
 public abstract class Operator {

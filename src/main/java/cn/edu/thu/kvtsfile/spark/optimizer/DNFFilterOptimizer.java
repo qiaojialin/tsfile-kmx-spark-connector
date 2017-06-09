@@ -3,15 +3,12 @@ package cn.edu.thu.kvtsfile.spark.optimizer;
 
 import cn.edu.thu.kvtsfile.spark.common.FilterOperator;
 import cn.edu.thu.kvtsfile.spark.exception.DNFOptimizeException;
-import cn.edu.thu.kvtsfile.spark.common.FilterOperator;
-import cn.edu.thu.kvtsfile.spark.exception.DNFOptimizeException;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static cn.edu.thu.tsfile.timeseries.read.qp.SQLConstant.KW_AND;
-import static cn.edu.thu.tsfile.timeseries.read.qp.SQLConstant.KW_OR;
-
+import static cn.edu.thu.kvtsfile.spark.common.SQLConstant.KW_AND;
+import static cn.edu.thu.kvtsfile.spark.common.SQLConstant.KW_OR;
 
 public class DNFFilterOptimizer implements IFilterOptimizer {
 

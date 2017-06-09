@@ -1,28 +1,20 @@
 package cn.edu.thu.kvtsfile.spark;
 
 import cn.edu.thu.kvtsfile.spark.common.FilterOperator;
+import cn.edu.thu.kvtsfile.spark.common.SQLConstant;
 import cn.edu.thu.kvtsfile.spark.common.SingleQuery;
 import cn.edu.thu.kvtsfile.spark.optimizer.RemoveNotOptimizer;
 import cn.edu.thu.tsfile.common.utils.TSRandomAccessFileReader;
-import cn.edu.thu.kvtsfile.spark.common.BasicOperator;
-import cn.edu.thu.kvtsfile.spark.common.FilterOperator;
-import cn.edu.thu.kvtsfile.spark.common.SingleQuery;
 import cn.edu.thu.kvtsfile.spark.common.TSQueryPlan;
 import cn.edu.thu.kvtsfile.spark.exception.QueryOperatorException;
 import cn.edu.thu.kvtsfile.spark.exception.QueryProcessorException;
 import cn.edu.thu.kvtsfile.spark.optimizer.DNFFilterOptimizer;
 import cn.edu.thu.kvtsfile.spark.optimizer.MergeSingleFilterOptimizer;
 import cn.edu.thu.kvtsfile.spark.optimizer.PhysicalOptimizer;
-import cn.edu.thu.kvtsfile.spark.optimizer.RemoveNotOptimizer;
-import cn.edu.thu.tsfile.timeseries.read.metadata.SeriesSchema;
-import cn.edu.thu.tsfile.timeseries.read.qp.SQLConstant;
-import cn.edu.thu.tsfile.timeseries.read.query.QueryEngine;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 
 /**

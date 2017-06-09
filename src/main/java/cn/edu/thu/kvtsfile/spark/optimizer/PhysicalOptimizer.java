@@ -1,9 +1,9 @@
 package cn.edu.thu.kvtsfile.spark.optimizer;
 
 import cn.edu.thu.kvtsfile.spark.common.*;
+import cn.edu.thu.tsfile.common.constant.SystemConstant;
 import cn.edu.thu.tsfile.common.utils.TSRandomAccessFileReader;
 import cn.edu.thu.tsfile.timeseries.read.metadata.SeriesSchema;
-import cn.edu.thu.tsfile.timeseries.read.qp.SQLConstant;
 import cn.edu.thu.tsfile.timeseries.read.query.QueryEngine;
 
 import java.io.IOException;
@@ -32,7 +32,7 @@ public class PhysicalOptimizer {
         QueryEngine queryEngine = new QueryEngine(in);
 
         //get all series in current tsfile
-        List<SeriesSchema> actualSeriesList = queryEngine.getAllSeries();
+        List<SeriesSchema> actualSeriesList = queryEngine.getAllSeriesSchema();
         List<String> actualDeltaObjectList = queryEngine.getAllDeltaObjectUIDByPartition(start, end);
 
         if(singleQuery != null) {
@@ -86,7 +86,7 @@ public class PhysicalOptimizer {
         for(String deltaObject: validDeltaObjects) {
             List<String> newPaths = new ArrayList<>();
             for(String path: validPaths) {
-                String newPath = deltaObject + SQLConstant.PATH_SEPARATOR + path;
+                String newPath = deltaObject + SystemConstant.PATH_SEPARATOR + path;
                 newPaths.add(newPath);
             }
             if(valueFilter == null) {
