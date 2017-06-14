@@ -75,10 +75,9 @@ The set of time-series data in section "Time-series Data" is used here to illust
 <span>A set of time-series data</span>
 </center>
 
-There are two reserved columns in Spark SQL Table:
+There is only one reserved columns in Spark SQL Table:
 
 - `time` : Timestamp, LongType
-- `delta_object` : Delta_object ID, StringType
 
 The SparkSQL Table Structure is as follow:
 
@@ -105,7 +104,7 @@ The SparkSQL Table Structure is as follow:
 
 	```scala
 	// import this library and Spark
-	import cn.edu.thu.kvtsfile.spark._
+	import cn.edu.thu.kvtsfile._
 	import org.apache.spark.sql.SparkSession
 
 	val spark = SparkSession.builder().master("local").getOrCreate()
@@ -124,11 +123,11 @@ The SparkSQL Table Structure is as follow:
 * **Example 2**
 
 	```scala
-	import cn.edu.thu.kvtsfile.spark._
+	import cn.edu.thu.kvtsfile._
     import org.apache.spark.sql.SparkSession
 	val spark = SparkSession.builder().master("local").getOrCreate()
 	val df = spark.read
-	      .format("cn.edu.thu.kvtsfile.spark")
+	      .format("cn.edu.thu.kvtsfile")
 	      .load("test.ts")
 
 
@@ -139,12 +138,12 @@ The SparkSQL Table Structure is as follow:
 * **Example 3**
 
 	```scala
-	import cn.edu.thu.kvtsfile.spark._
+	import cn.edu.thu.kvtsfile._
     import org.apache.spark.sql.SparkSession
 	val spark = SparkSession.builder().master("local").getOrCreate()
 
 	//create a table in SparkSQL and build relation with a TsFile
-	spark.sql("create temporary view TsFile using cn.edu.thu.kvtsfile.spark options(path = \"test.ts\")")
+	spark.sql("create temporary view TsFile using cn.edu.thu.kvtsfile options(path = \"test.ts\")")
 
 	spark.sql("select * from TsFile where sensor_1 > 1.2").show()
 
@@ -155,14 +154,14 @@ The SparkSQL Table Structure is as follow:
 可以将项目打包在 `spark-shell`中使用。
 
 ```
-mvn package -DskipTests
-
-包所在位置：
-/tsfile-kmx-spark-connector/target/tsfile-kmx-spark-1.0.jar
+mvn clean scala:compile compile package
 ```
 
+包所在位置：target/kvtsfile-spark-connector-0.1.0.jar
+
+
 ```
-$ bin/spark-shell --jars tsfile-kmx-spark-1.0.jar
+$ bin/spark-shell --jars kvtsfile-spark-connector-0.1.0.jar,tsfile-0.1.0.jar
 
 scala> sql("CREATE TEMPORARY TABLE TsFile_table USING cn.edu.thu.kvtsfile.spark OPTIONS (path \"hdfs://localhost:9000/test.ts\")")
 
